@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getToken } from "firebase/messaging";
 import { messaging } from '../firebase';
 import './Dashboard.css';
+import Chatbot from './Chatbot';
 
 const Dashboard = () => {
     const [systems, setSystems] = useState([
@@ -10,6 +11,7 @@ const Dashboard = () => {
         { id: 3, name: 'App na Webplanet', url: 'https://zap3stor.webplanet.com.br', type: 'website', status: 'online' },
         { id: 4, name: 'Backend Zap3stor', url: 'https://lhc.webplanet.com.br/dev/restapi/login', type: 'api', apiType: 'login', status: 'online' },
     ]);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const checkApiStatus = async (system) => {
         if (system.apiType === 'login') {
@@ -153,6 +155,10 @@ const Dashboard = () => {
                     </div>
                 ))}
             </div>
+            <button className="chat-button" onClick={() => setIsChatOpen(true)}>
+                <img src="/HelpIA.png" alt="Chat" />
+            </button>
+            {isChatOpen && <Chatbot onClose={() => setIsChatOpen(false)} />}
         </div>
     );
 };

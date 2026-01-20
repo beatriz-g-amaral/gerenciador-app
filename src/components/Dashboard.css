@@ -81,3 +81,24 @@ button:hover {
 .system.offline {
     background: linear-gradient(135deg, #dc3545, #c82333);
 }
+
+.chat-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #007bff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.chat-button img {
+    width: 30px;
+    height: 30px;
+}
