@@ -19,10 +19,6 @@ const Chatbot = ({ onClose }) => {
             };
 
             setChat(model.startChat({
-                history: messages.map(msg => ({
-                    parts: [{ text: msg.text }],
-                    role: msg.sender === 'user' ? 'user' : 'model'
-                })),
                 generationConfig: {
                     maxOutputTokens: 1000,
                 },
