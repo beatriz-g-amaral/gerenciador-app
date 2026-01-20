@@ -5,10 +5,10 @@ import './Dashboard.css';
 
 const Dashboard = () => {
     const [systems, setSystems] = useState([
-        { id: 1, name: 'Site', url: 'https://www.zap3stor.com.br', type: 'website', status: 'online' },
-        { id: 2, name: 'App', url: 'https://webplanet.zap3stor.com.br', type: 'website', status: 'online' },
-        { id: 3, name: 'App na Webplanet', url: 'https://zap3stor.webplanet.com.br', type: 'website', status: 'online' },
-        { id: 4, name: 'Backend Zap3stor', url: 'https://lhc.webplanet.com.br/dev/restapi/login', type: 'api', apiType: 'login', status: 'online' },
+        { id: 1, name: 'Site', url: 'http://www.zap3stor.com.br', type: 'website', status: 'online' },
+        { id: 2, name: 'App', url: 'http://webplanet.zap3stor.com.br', type: 'website', status: 'online' },
+        { id: 3, name: 'App na Webplanet', url: 'http://zap3stor.webplanet.com.br', type: 'website', status: 'online' },
+        { id: 4, name: 'Backend Zap3stor', url: 'http://lhc.webplanet.com.br/dev/restapi/login', type: 'api', apiType: 'login', status: 'online' },
     ]);
 
     const checkApiStatus = async (system) => {
@@ -46,7 +46,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchWhatsappStatus = async () => {
             try {
-                const response = await fetch('https://lhc.webplanet.com.br/dev/restapi/getstatus');
+                const response = await fetch('http://lhc.webplanet.com.br/dev/restapi/getstatus');
                 const data = await response.json();
                 const whatsappSystems = data.map((system, index) => ({
                     id: systems.filter(s => s.type !== 'api' || s.apiType !== 'status').length + index + 1,
@@ -65,7 +65,7 @@ const Dashboard = () => {
                         if (oldSystem && oldSystem.status !== newSystem.status && newSystem.status === 'offline') {
                             new Notification('System Offline', {
                                 body: `${newSystem.name} is currently offline.`,
-                                icon: '/logo192.png'
+                                icon: '/Logo.png'
                             });
                         }
                     });
