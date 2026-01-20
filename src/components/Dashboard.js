@@ -119,21 +119,25 @@ const Dashboard = () => {
         return () => clearInterval(interval);
     }, [systems]);
 
-    const requestNotificationPermission = async () => {
-        try {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                console.log('Notification permission granted.');
-                const token = await getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY' });
-                console.log('FCM Token:', token);
-                // TODO: Send this token to your server
-            } else {
-                console.log('Unable to get permission to notify.');
+    useEffect(() => {
+        const requestNotificationPermission = async () => {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                    // TODO: Send the token to your server to subscribe to push notifications.
+                    const token = await getToken(messaging, { vapidKey: 'BBl7LNK3HeZ1HceXkpr5ZRZr_-V3FieHdCX5k6kHxTmm_JunlnKIX0zoWyYjtux3LtpDtebXU8e6eRdj04HNag8' });
+                    console.log('FCM Token:', token);
+                } else {
+                    console.log('Unable to get permission to notify.');
+                }
+            } catch (error) {
+                console.error('An error occurred while requesting permission:', error);
             }
-        } catch (error) {
-            console.error('An error occurred while requesting permission:', error);
-        }
-    };
+        };
+
+        requestNotificationPermission();
+    }, []);
 
     return (
         <div className="dashboard-container">
@@ -141,7 +145,6 @@ const Dashboard = () => {
                 <img src="/Logo.png" alt="Logo" className="logo" />
                 <h1>Sistemas Dashboard</h1>
             </div>
-            <button onClick={requestNotificationPermission}>Ativar Notificações</button>
             <div className="system-status-container">
                 {systems.map(system => (
                     <div key={system.id} className={`system ${system.status}`}>
