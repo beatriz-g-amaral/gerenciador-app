@@ -113,7 +113,7 @@ const Dashboard = () => {
         const interval = setInterval(() => {
             checkOtherSystemsStatus();
             fetchWhatsappStatus();
-        }, 5000);
+        }, 10000);
 
         checkOtherSystemsStatus();
         fetchWhatsappStatus();
