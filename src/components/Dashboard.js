@@ -119,7 +119,7 @@ const Dashboard = () => {
         fetchWhatsappStatus();
 
         return () => clearInterval(interval);
-    }, [systems]);
+    }, []);
 
     useEffect(() => {
         const requestNotificationPermission = async () => {
