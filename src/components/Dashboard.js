@@ -26,7 +26,7 @@ const Dashboard = () => {
                         username: 'Suporte',
                         password: 'Webne10',
                         generate_token: 'true',
-                        device: 'web',
+                        device: 'android',
                     })
                 });
 
