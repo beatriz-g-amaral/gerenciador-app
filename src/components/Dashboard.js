@@ -150,7 +150,7 @@ const Dashboard = () => {
             </div>
             <div className="system-status-container">
                 {systems.map(system => (
-                    <div key={system.id} className={`system ${system.status}`}>
+                    <div key={system.id} className={`system ${system.status.replace(/\\s+/g, '-')}`}>
                         <h2>{system.name}</h2>
                         <p>Status: {system.status}</p>
                     </div>

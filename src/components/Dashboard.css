@@ -82,6 +82,10 @@ button:hover {
     background: linear-gradient(135deg, #dc3545, #c82333);
 }
 
+.system.no-connection {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+}
+
 .chat-button {
     position: fixed;
     bottom: 20px;
