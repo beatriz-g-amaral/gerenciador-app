@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { initializeChat, sendMessage } from '../services/aiService';
 
 interface Message {
@@ -18,6 +18,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose, setUnreadCount }) => {
     });
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         initializeChat();
@@ -32,6 +33,9 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose, setUnreadCount }) => {
                 const userMessage: Message = { text: input, sender: 'user' };
                 setMessages(prevMessages => [...prevMessages, userMessage]);
                 setInput('');
+                if (textareaRef.current) {
+                    textareaRef.current.style.height = 'auto';
+                }
                 setIsLoading(true);
                 try {
                     const aiText = await sendMessage(input);
@@ -84,13 +88,24 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose, setUnreadCount }) => {
                 )}
             </div>
             <div className="chatbot-input">
-                <input
-                    type="text"
+                <textarea
+                    ref={textareaRef}
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                    onChange={(e) => {
+                        setInput(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = `${Math.min(e.target.scrollHeight, 100)}px`;
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSend();
+                        }
+                    }}
+                    placeholder="Digite sua mensagem..."
+                    rows={1}
                 />
-                <button onClick={handleSend}>Send</button>
+                <button onClick={handleSend}>Enviar</button>
             </div>
         </div>
     );
