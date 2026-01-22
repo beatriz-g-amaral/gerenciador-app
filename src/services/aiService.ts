@@ -16,7 +16,7 @@ export const initializeChat = (instruction: any = routerInstruction) => {
 
     chat = model.startChat({
         generationConfig: {
-            maxOutputTokens: 1000,
+            maxOutputTokens: 3000,
         },
         systemInstruction: instruction,
     });
