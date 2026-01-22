@@ -4,17 +4,37 @@ import { messaging } from '../firebase';
 import './Dashboard.css';
 import Chatbot from './Chatbot';
 
+interface System {
+    id: number;
+    name: string;
+    url?: string;
+    type: string;
+    apiType?: string;
+    status: string;
+}
+
+interface WhatsappSystem {
+    name: string;
+    status: string;
+}
+
 const Dashboard = () => {
-    const [systems, setSystems] = useState([
+    const [systems, setSystems] = useState<System[]>([
         { id: 1, name: 'Site', url: 'https://www.zap3stor.com.br', type: 'website', status: 'online' },
         { id: 2, name: 'App', url: 'https://webplanet.zap3stor.com.br', type: 'website', status: 'online' },
         { id: 3, name: 'App na Webplanet', url: 'https://zap3stor.webplanet.com.br', type: 'website', status: 'online' },
         { id: 4, name: 'Backend Zap3stor', url: 'https://lhc.webplanet.com.br/dev/restapi/login', type: 'api', apiType: 'login', status: 'online' },
     ]);
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
-    const checkApiStatus = async (system) => {
-        if (system.apiType === 'login') {
+    const handleOpenChat = () => {
+        setIsChatOpen(true);
+        setUnreadCount(0);
+    };
+
+    const checkApiStatus = async (system: System): Promise<System> => {
+        if (system.apiType === 'login' && system.url) {
             try {
                 const response = await fetch(system.url, {
                     method: 'POST',
@@ -43,14 +63,15 @@ const Dashboard = () => {
                 return { ...system, status: 'offline' };
             }
         }
+        return system;
     };
 
     useEffect(() => {
         const fetchWhatsappStatus = async () => {
             try {
                 const response = await fetch('https://lhc.webplanet.com.br/dev/restapi/getstatus');
-                const data = await response.json();
-                const whatsappSystems = data.map((system, index) => ({
+                const data: WhatsappSystem[] = await response.json();
+                const whatsappSystems = data.map((system: WhatsappSystem, index: number) => ({
                     id: systems.filter(s => s.type !== 'api' || s.apiType !== 'status').length + index + 1,
                     name: system.name,
                     status: system.status.toLowerCase(),
@@ -82,10 +103,11 @@ const Dashboard = () => {
         const checkOtherSystemsStatus = async () => {
             const otherSystems = systems.filter(s => s.apiType !== 'status');
             const updatedSystems = await Promise.all(otherSystems.map(async (system) => {
-                let newStatus;
+                let newStatus = system.status;
                 if (system.type === 'api') {
-                    newStatus = (await checkApiStatus(system)).status;
-                } else {
+                    const updatedSystem = await checkApiStatus(system);
+                    newStatus = updatedSystem.status;
+                } else if (system.url) {
                     try {
                         await fetch(system.url, { mode: 'no-cors' });
                         newStatus = 'online';
@@ -156,10 +178,11 @@ const Dashboard = () => {
                     </div>
                 ))}
             </div>
-            <button className="chat-button" onClick={() => setIsChatOpen(true)}>
+            <button className="chat-button" onClick={handleOpenChat}>
+                {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
                 <img src="/HelpIA.png" alt="Chat" />
             </button>
-            {isChatOpen && <Chatbot onClose={() => setIsChatOpen(false)} />}
+            {isChatOpen && <Chatbot onClose={() => setIsChatOpen(false)} setUnreadCount={setUnreadCount} />}
         </div>
     );
 };

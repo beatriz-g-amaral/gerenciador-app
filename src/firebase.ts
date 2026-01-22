@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging } from "firebase/messaging";
-// TODO: Add SDKs for Firebase products that you want to use
 
 const firebaseConfig = {
   apiKey: "AIzaSyDwqkwolOEDtmvUn9P3w-he4K3Vz9WKgb4",
