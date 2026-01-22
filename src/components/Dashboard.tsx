@@ -27,6 +27,7 @@ const Dashboard = () => {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [messagingInstance, setMessagingInstance] = useState<Messaging | null>(null);
+    const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
 
     const handleOpenChat = () => {
         setIsChatOpen(true);
@@ -149,31 +150,39 @@ const Dashboard = () => {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             setMessagingInstance(getMessagingInstance());
-            const requestNotificationPermission = async () => {
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted' && messagingInstance) {
-                        console.log('Notification permission granted.');
-                        // TODO: Send the token to your server to subscribe to push notifications.
-                        const token = await getToken(messagingInstance, { vapidKey: 'BBl7LNK3HeZ1HceXkpr5ZRZr_-V3FieHdCX5k6kHxTmm_JunlnKIX0zoWyYjtux3LtpDtebXU8e6eRdj04HNag8' });
-                        console.log('FCM Token:', token);
-                    } else {
-                        console.log('Unable to get permission to notify.');
-                    }
-                } catch (error) {
-                    console.error('An error occurred while requesting permission:', error);
-                }
-            };
-
-            requestNotificationPermission();
+            setNotificationPermission(Notification.permission);
         }
     }, []);
+
+    const requestNotificationPermission = async () => {
+        try {
+            const permission = await Notification.requestPermission();
+            setNotificationPermission(permission);
+            if (permission === 'granted' && messagingInstance) {
+                console.log('Notification permission granted.');
+                // TODO: Send the token to your server to subscribe to push notifications.
+                const token = await getToken(messagingInstance, { vapidKey: 'BBl7LNK3HeZ1HceXkpr5ZRZr_-V3FieHdCX5k6kHxTmm_JunlnKIX0zoWyYjtux3LtpDtebXU8e6eRdj04HNag8' });
+                console.log('FCM Token:', token);
+            } else {
+                console.log('Unable to get permission to notify.');
+            }
+        } catch (error) {
+            console.error('An error occurred while requesting permission:', error);
+        }
+    };
 
     return (
         <div className="dashboard-container">
             <div className="header">
                 <img src="/Logo.png" alt="Logo" className="logo" />
                 <h1>Sistemas Dashboard</h1>
+                <button
+                    onClick={requestNotificationPermission}
+                    style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '24px' }}
+                    title={notificationPermission === 'granted' ? 'Notificações Ativadas' : 'Ativar Notificações'}
+                >
+                    {notificationPermission === 'granted' ? '🔔' : '🔕'}
+                </button>
             </div>
             <div className="system-status-container">
                 {systems.map(system => (
