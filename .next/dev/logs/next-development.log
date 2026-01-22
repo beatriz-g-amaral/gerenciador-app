@@ -1,0 +1,8 @@
+[00:00:07.096] Server  LOG     
+[00:00:07.097] Server  LOG       We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+[00:00:07.097] Server  LOG       The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+[00:00:07.097] Server  LOG       	- incremental was set to true
+[00:00:07.097] Server  LOG       	- exclude was set to ['node_modules']
+[00:00:07.097] Server  LOG     
+[00:00:07.563] Server  LOG     ✓ Ready in 6.6s
