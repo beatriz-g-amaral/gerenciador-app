@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './Chatbot.css';
 import { initializeChat, sendMessage } from '../services/aiService';
 
 interface Message {

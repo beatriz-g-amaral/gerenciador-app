@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getToken } from "firebase/messaging";
-import { messaging } from '../firebase';
-import './Dashboard.css';
+import { getToken, Messaging } from "firebase/messaging";
+import { getMessagingInstance } from '../firebase';
 import Chatbot from './Chatbot';
 
 interface System {
@@ -27,6 +26,7 @@ const Dashboard = () => {
     ]);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [messagingInstance, setMessagingInstance] = useState<Messaging | null>(null);
 
     const handleOpenChat = () => {
         setIsChatOpen(true);
@@ -67,101 +67,106 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        const fetchWhatsappStatus = async () => {
-            try {
-                const response = await fetch('https://lhc.webplanet.com.br/dev/restapi/getstatus');
-                const data: WhatsappSystem[] = await response.json();
-                const whatsappSystems = data.map((system: WhatsappSystem, index: number) => ({
-                    id: systems.filter(s => s.type !== 'api' || s.apiType !== 'status').length + index + 1,
-                    name: system.name,
-                    status: system.status.toLowerCase(),
-                    type: 'api',
-                    apiType: 'status'
-                }));
+        if (typeof window !== 'undefined') {
+            const fetchWhatsappStatus = async () => {
+                try {
+                    const response = await fetch('https://lhc.webplanet.com.br/dev/restapi/getstatus');
+                    const data: WhatsappSystem[] = await response.json();
+                    const whatsappSystems = data.map((system: WhatsappSystem, index: number) => ({
+                        id: systems.filter(s => s.type !== 'api' || s.apiType !== 'status').length + index + 1,
+                        name: system.name,
+                        status: system.status.toLowerCase(),
+                        type: 'api',
+                        apiType: 'status'
+                    }));
 
-                setSystems(prevSystems => {
-                    const otherSystems = prevSystems.filter(s => s.apiType !== 'status');
-                    const newSystems = [...otherSystems, ...whatsappSystems];
+                    setSystems(prevSystems => {
+                        const otherSystems = prevSystems.filter(s => s.apiType !== 'status');
+                        const newSystems = [...otherSystems, ...whatsappSystems];
 
-                    newSystems.forEach(newSystem => {
-                        const oldSystem = prevSystems.find(s => s.name === newSystem.name);
-                        if (oldSystem && oldSystem.status !== newSystem.status && newSystem.status === 'offline') {
-                            new Notification('System Offline', {
-                                body: `${newSystem.name} is currently offline.`,
-                                icon: '/Logo.png'
-                            });
+                        newSystems.forEach(newSystem => {
+                            const oldSystem = prevSystems.find(s => s.name === newSystem.name);
+                            if (oldSystem && oldSystem.status !== newSystem.status && newSystem.status === 'offline') {
+                                new Notification('System Offline', {
+                                    body: `${newSystem.name} is currently offline.`,
+                                    icon: '/Logo.png'
+                                });
+                            }
+                        });
+
+                        return newSystems;
+                    });
+                } catch (error) {
+                    console.error("Failed to fetch Whatsapp status:", error);
+                }
+            };
+
+            const checkOtherSystemsStatus = async () => {
+                const otherSystems = systems.filter(s => s.apiType !== 'status');
+                const updatedSystems = await Promise.all(otherSystems.map(async (system) => {
+                    let newStatus = system.status;
+                    if (system.type === 'api') {
+                        const updatedSystem = await checkApiStatus(system);
+                        newStatus = updatedSystem.status;
+                    } else if (system.url) {
+                        try {
+                            await fetch(system.url, { mode: 'no-cors' });
+                            newStatus = 'online';
+                        } catch (error) {
+                            newStatus = 'offline';
                         }
-                    });
-
-                    return newSystems;
-                });
-            } catch (error) {
-                console.error("Failed to fetch Whatsapp status:", error);
-            }
-        };
-
-        const checkOtherSystemsStatus = async () => {
-            const otherSystems = systems.filter(s => s.apiType !== 'status');
-            const updatedSystems = await Promise.all(otherSystems.map(async (system) => {
-                let newStatus = system.status;
-                if (system.type === 'api') {
-                    const updatedSystem = await checkApiStatus(system);
-                    newStatus = updatedSystem.status;
-                } else if (system.url) {
-                    try {
-                        await fetch(system.url, { mode: 'no-cors' });
-                        newStatus = 'online';
-                    } catch (error) {
-                        newStatus = 'offline';
                     }
-                }
 
-                if (system.status !== newStatus && newStatus === 'offline') {
-                    new Notification('System Offline', {
-                        body: `${system.name} is currently offline.`,
-                        icon: '/Logo.png'
-                    });
-                }
+                    if (system.status !== newStatus && newStatus === 'offline') {
+                        new Notification('System Offline', {
+                            body: `${system.name} is currently offline.`,
+                            icon: '/Logo.png'
+                        });
+                    }
+                    
+                    return { ...system, status: newStatus };
+                }));
                 
-                return { ...system, status: newStatus };
-            }));
-            
-            setSystems(prevSystems => {
-                const whatsappSystems = prevSystems.filter(s => s.apiType === 'status');
-                return [...updatedSystems, ...whatsappSystems];
-            });
-        };
+                setSystems(prevSystems => {
+                    const whatsappSystems = prevSystems.filter(s => s.apiType === 'status');
+                    return [...updatedSystems, ...whatsappSystems];
+                });
+            };
 
-        const interval = setInterval(() => {
+            const interval = setInterval(() => {
+                checkOtherSystemsStatus();
+                fetchWhatsappStatus();
+            }, 10000);
+
             checkOtherSystemsStatus();
             fetchWhatsappStatus();
-        }, 10000);
 
-        checkOtherSystemsStatus();
-        fetchWhatsappStatus();
-
-        return () => clearInterval(interval);
+            return () => clearInterval(interval);
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        const requestNotificationPermission = async () => {
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    console.log('Notification permission granted.');
-                    // TODO: Send the token to your server to subscribe to push notifications.
-                    const token = await getToken(messaging, { vapidKey: 'BBl7LNK3HeZ1HceXkpr5ZRZr_-V3FieHdCX5k6kHxTmm_JunlnKIX0zoWyYjtux3LtpDtebXU8e6eRdj04HNag8' });
-                    console.log('FCM Token:', token);
-                } else {
-                    console.log('Unable to get permission to notify.');
+        if (typeof window !== 'undefined') {
+            setMessagingInstance(getMessagingInstance());
+            const requestNotificationPermission = async () => {
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted' && messagingInstance) {
+                        console.log('Notification permission granted.');
+                        // TODO: Send the token to your server to subscribe to push notifications.
+                        const token = await getToken(messagingInstance, { vapidKey: 'BBl7LNK3HeZ1HceXkpr5ZRZr_-V3FieHdCX5k6kHxTmm_JunlnKIX0zoWyYjtux3LtpDtebXU8e6eRdj04HNag8' });
+                        console.log('FCM Token:', token);
+                    } else {
+                        console.log('Unable to get permission to notify.');
+                    }
+                } catch (error) {
+                    console.error('An error occurred while requesting permission:', error);
                 }
-            } catch (error) {
-                console.error('An error occurred while requesting permission:', error);
-            }
-        };
+            };
 
-        requestNotificationPermission();
+            requestNotificationPermission();
+        }
     }, []);
 
     return (
